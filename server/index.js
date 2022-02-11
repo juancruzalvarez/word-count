@@ -90,10 +90,11 @@ app.get("/results", (req, res) => {
     let string = element.buffer.toString();
     let words = string.trim().replace(/[.,"]gi/,' ').split(/\s+/).filter((element)=>{return element && element !== ' '});  //remove punctuation and then split by whitespace, linebreak and such
     words.forEach((word) =>{
-      if(wordMap.has(word)){
-        wordMap.set(word,wordMap.get(word)+1);
+      let wordlc = word.toLowerCase();
+      if(wordMap.has(wordlc)){
+        wordMap.set(wordlc,wordMap.get(wordlc)+1);
       }else{
-        wordMap.set(word, 1);
+        wordMap.set(wordlc, 1);
       }
     });
     results[element.originalname] = Object.fromEntries(wordMap);

@@ -11,3 +11,14 @@ export type FileData = {
    size:number;
    status:UploadStatus;
 };
+
+export type WordDataAll ={
+   word:string;
+   count:number;
+   fileAparences:string[];
+};
+
+export type WordDataFile ={
+   word:string;
+   count:number;
+};

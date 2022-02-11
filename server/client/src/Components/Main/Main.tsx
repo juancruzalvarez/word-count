@@ -1,9 +1,11 @@
 import React, { useRef } from 'react';
 import { useState } from 'react';
 import { DropBox } from '../DropBox/DropBox';
-import { FileData, UploadStatus} from '../../Types/common'
+import { FileData, UploadStatus, WordDataAll, WordDataFile} from '../../Types/common'
 import './styles.scss'
-import { response } from 'express';
+import { ResultsAllFiles } from '../ResultsAllFIles/ResultsAllFiles';
+import { ResultsFile } from '../ResultsFile/ResultsFile';
+
 export const Main  = () =>{
 
 
@@ -45,11 +47,13 @@ export const Main  = () =>{
             if(contentDivRef.current){
                contentDivRef.current.style['height'] = '0';
                contentDivRef.current.style['transform'] ='translate-y(5px)';
+               contentDivRef.current.style['overflow'] = 'hidden';
             }
             setTimeout(()=>{
                if(contentDivRef.current){
                   contentDivRef.current.style['height'] = '';
                   contentDivRef.current.style['transform'] ='';
+                  contentDivRef.current.style['overflow'] = '';
                   setResults(response);
                }
             }, 8000);
@@ -57,11 +61,13 @@ export const Main  = () =>{
          if(contentDivRef.current){
             contentDivRef.current.style['height'] = '0';
             contentDivRef.current.style['transform'] ='translate-y(5px)';
+            contentDivRef.current.style['overflow'] = 'hidden';
          }
          setTimeout(()=>{
             if(contentDivRef.current){
                contentDivRef.current.style['height'] = '';
                contentDivRef.current.style['transform'] ='';
+               contentDivRef.current.style['overflow'] = '';
                setLoading(true);
             }
          }, 800);
@@ -127,5 +133,44 @@ const Loading  = ()=>{
 }
 
 const ResultDisplay = ({res}:any)=>{
-   return <h1>results</h1>
+   let fileDataDisplays =[];
+   let totalWordCount: number = 0;
+   let fileNames: string[] = [];
+   let allFilesWordData: WordDataAll[] = [];
+   let wordMap = new Map<string,{count: number, fileAparences:string[]}>();
+   console.log('res:');
+   console.log(res);
+   for(let file in res){
+      fileNames.push(file);
+      let fileData = res[file];
+      let fileWordCount = 0;
+      let fileWordData: WordDataFile[] = [];
+      for(let word in fileData){
+         totalWordCount += fileData[word];
+         fileWordCount += fileData[word];
+         fileWordData.push({word:word,count:fileData[word]});
+         if(wordMap.has(word)){
+            let tmp = wordMap.get(word)!;
+            tmp.count+=fileData[word];
+            if(!tmp.fileAparences.includes(file)){
+               tmp.fileAparences.push(file);
+            } 
+            wordMap.set(word, tmp);
+         }else{
+            wordMap.set(word, {count: fileData[word], fileAparences:[file]});
+         }
+      }
+      fileDataDisplays.push(<ResultsFile fileName={file} totalWordCount={fileWordCount} uniqueWordCount={Object.keys(fileData).length} tableData = {fileWordData} mostUsedWord={'f'}/>);
+
+   }
+   wordMap.forEach((value, key) =>{
+      allFilesWordData.push({word:key, fileAparences:value.fileAparences, count:value.count});
+   });
+
+   fileDataDisplays.push(<ResultsAllFiles numberOfFiles={fileNames.length}
+      fileNames={fileNames}
+      totalWordCount={totalWordCount}
+      uniqueWordCount={wordMap.size}
+      tableData={allFilesWordData}/>);
+   return <>{fileDataDisplays}</>;          
 }

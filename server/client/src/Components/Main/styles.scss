@@ -6,8 +6,6 @@
 .content{
    @include centeredDiv;
    width: 80%;
-   height: 100vh;
-   overflow: hidden;
    transition: height 0.8s;
 }
 
