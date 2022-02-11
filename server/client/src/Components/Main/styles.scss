@@ -1,0 +1,31 @@
+@use '../globals' as *;
+
+.main{
+   text-align: center;
+}
+.content{
+   @include centeredDiv;
+   width: 80%;
+   height: 100vh;
+   overflow: hidden;
+   transition: height 0.8s;
+}
+
+.goButton{
+   @include centeredDiv;
+   width: $uploadContentWidth;
+   background-color: lightgray;
+   color:azure;
+   border-radius: 0.4em;
+   margin-top: 0.3em;
+   padding: 0.5em;
+}
+
+.enabled{
+   background-color: greenyellow;
+   color:white;
+}
+
+.enabled:hover{
+   background-color: blueviolet;
+}

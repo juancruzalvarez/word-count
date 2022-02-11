@@ -1,0 +1,23 @@
+{
+  "name": "word-count-server",
+  "version": "1.0.0",
+  "description": "The backend of the word-count web application.",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd client && npm run build && cd .. && node index.js",
+    "startServer": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "express"
+  ],
+  "author": "Juan Cruz Alvarez",
+  "license": "MIT",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.17.2",
+    "multer": "^1.4.4",
+    "uuid": "^8.3.2"
+  }
+}

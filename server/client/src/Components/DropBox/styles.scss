@@ -1,0 +1,64 @@
+.dropBoxContainer{
+   width: 80%;
+   height: 40vh;
+   background-color: white;
+   border: black dotted 3px;
+   display:flex;
+   justify-content:center;
+   align-items:center;
+   margin: 0 auto;
+   position:relative;
+}
+
+.draggingOver{
+   border:gray solid 3px;
+}
+
+#fileElem{
+   display:none;
+}
+
+.button{
+   color:blueviolet;
+
+}
+
+.button:hover{
+   color:cadetblue;
+}
+
+.floatDown{
+   position:absolute;
+   bottom: 0;
+   left:0;
+   right:0;
+}
+
+.icon {
+   position: relative;
+ }
+
+ .iconImage {
+    height: 1.25em;
+    width: 1.25em;
+ }
+ 
+ .iconDescription {
+   position: absolute;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   background: gray;
+   color: black;
+   visibility: hidden;
+   opacity: 0;
+ 
+   /* transition effect. not necessary */
+   transition: opacity .2s, visibility .2s;
+ }
+ 
+ .icon:hover .iconDescription {
+   visibility: visible;
+   opacity: 1;
+ }
