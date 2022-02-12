@@ -8,9 +8,9 @@ const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 3001;
 
 const app = express();
-const map = new Map();
-
-
+const MAX_SESSION_TIME = 1000*60*30; // after 30 minutes delete files from session
+const MAX_FILE_SIZE = 1024*1024*5; // 5mb
+const files = new Map();
 
 app.use(express.static(path.join(__dirname, "client", "build")));
 const storage = multer.memoryStorage();
@@ -23,17 +23,19 @@ app.get('/', (req, res) =>{
 
 });
 
-const MAX_FILE_SIZE = 2048*2048;
+
 app.post("/file", upload.single('file'),  (req, res, next) =>{
-  let sessionId = null;
+  let sessionId;
   if(!req.cookies.id){ 
+    console.log('NO COOKIE');
     let newId = uuidv4();
-    while(map.has(newId)){
+    while(files.has(newId)){
       newId = uuidv4();
     }
     res.cookie('id', newId);
     sessionId = newId;
   }else{
+    console.log('COOKIE!');
     sessionId = req.cookies.id;
   }
   
@@ -48,22 +50,33 @@ app.post("/file", upload.single('file'),  (req, res, next) =>{
     res.send({uploadStatus:'ERROR_FILE_TOO_BIG'});
   }else{
     console.log('okey');
-    if(map.has(req.cookies['id'])){
-      map.set(req.cookies['id'], map.get(req.cookies['id']).concat(req.file));
+    if(files.has(sessionId)){
+      files.set(sessionId, files.get(sessionId).concat(req.file));
     }else{
-      map.set(req.cookies['id'], [req.file]);
+      files.set(sessionId, [req.file]);
+      setTimeout(()=>{
+        if(files.has(sessionId)){
+          files.delete(sessionId);
+        }
+      }, MAX_SESSION_TIME);
     }
     res.send({uploadStatus:'UPLOADED'});
     console.log("Map:");
-    console.log(map);
+    console.log(files);
   }
 });
 
 
 app.delete("/file", (req,res)=>{
-  if(req.cookies.id && map.has(req.cookies.id)&& req.body && req.body.file){
-    map.get(req.cookies.id).splice(map.get(req.cookies.id).findIndex(element =>element.name === req.body.file),1); 
-    res.send({'message':'deletedOK'});
+  if(req.cookies.id && files.has(req.cookies.id) && req.body && req.body.file){
+    let index = files.get(req.cookies.id).findIndex(element =>element.originalname === req.body.file);
+    if(index !==-1){
+      files.get(req.cookies.id).splice(index,1); 
+      res.send({'message':'deletedOK'});
+      console.log('deleted:'+req.body.file);
+    }else{
+      res.send({'message':'notDeleted'});
+    }
   }else{
     res.send({'message':'notDeleted'});
   }
@@ -71,21 +84,25 @@ app.delete("/file", (req,res)=>{
 
 app.get("/results", (req, res) => {
   console.log('results');
-   //res.json({ message: "Hello from server!" });
-   if(req.cookies && req.cookies.id && map.has(req.cookies.id)){
-     let results = getResults(req.cookies.id);
-     console.log(results);
-      res.send(results);
+   if(!req.cookies.id || !files.has(req.cookies.id)){
+     res.send({error:'No session'});
    }else{
-   res.send({'error':'userNotRecognized'})
+     let results = getResults(req.cookies.id);
+     console.log('files before:');
+     console.log(files);
+     files.delete(req.cookies.id);
+     console.log('files after:');
+     console.log(files);
+     res.clearCookie('id');
+     res.send(results);
+     
    }
-   
  });
 
  const getResults = (id) =>{
 
   let results = {};
-  map.get(id).forEach((element)=>{
+  files.get(id).forEach((element)=>{
     let wordMap = new Map();
     let string = element.buffer.toString();
     let words = string.trim().replace(/[.,"]gi/,' ').split(/\s+/).filter((element)=>{return element && element !== ' '});  //remove punctuation and then split by whitespace, linebreak and such

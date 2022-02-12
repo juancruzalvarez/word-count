@@ -11,16 +11,54 @@ export const Main  = () =>{
 
    const [files, setFiles] = useState<FileData[]>([]);
    const [results, setResults] = useState(null);
-   const [loading, setLoading] = useState<boolean>(false);
    const contentDivRef = useRef<HTMLDivElement>(null);
 
-   const handleFiles = (filesToUpload:any) =>{
+   const handleFiles =  (filesToUpload:any) =>{
       let newFiles = [...filesToUpload];
       let tmp = [...files];  
-      newFiles.forEach( (element) =>{ tmp.push({name: element.name, size: element.size, status:UploadStatus.UPLOADING}); uploadFile(element)});
+      console.log('Start handle files');
+      for(let i = 0; i< newFiles.length; i++){
+         let file = newFiles[i];
+         tmp.push({name: file.name, size: file.size, status:UploadStatus.UPLOADING});
+      }
       setFiles(tmp);
+      uploadFiles(filesToUpload);
    }
-
+   const uploadFiles = async (files:any) =>{
+      let filesToUpload = [...files]; 
+      console.log('Start handle files');
+      for(let i = 0; i< filesToUpload.length; i++){
+         let file = filesToUpload[i];
+         console.log('start upload file.'+file.name);
+         await uploadFile(file);
+         console.log('done upload file:'+file.name);
+      }
+   }
+   const uploadFile = async (file:any) =>{
+      let formData = new FormData()
+      formData.append('file',file)
+      await fetch('/file', {
+         method: 'POST',
+         credentials: 'same-origin',
+         body: formData
+      }).then(response => response.json())
+        .then((data) => {
+            setFiles((files) =>{
+               let newFiles = [...files];
+               for(let i = 0; i< newFiles.length;i++){
+                  if(newFiles[i].name === file.name){
+                     newFiles[i].status = data.uploadStatus;
+                     console.log('newfiles[i] :');
+                     console.log(newFiles[i]);
+                     break;
+                  }
+               }
+               console.log('recived response from file:'+file.name);
+               console.log('response:'+data.uploadStatus);
+               return newFiles;
+            });
+        });
+   }
    const handleDeleteFile = (fileName: string) =>{
       setFiles((files) =>{
          let newFiles = [...files];
@@ -38,87 +76,38 @@ export const Main  = () =>{
    }
 
    const handleGo = () =>{
+      contentDivRef.current!.style['height'] = '0';
+      contentDivRef.current!.style['overflow'] = 'hidden';
       fetch('/results', {
          method: 'GET',
          credentials: 'same-origin',
          })
          .then((res)=> {console.log(res); return res.json()})
          .then((response)=>{
-            if(contentDivRef.current){
-               contentDivRef.current.style['height'] = '0';
-               contentDivRef.current.style['transform'] ='translate-y(5px)';
-               contentDivRef.current.style['overflow'] = 'hidden';
-            }
             setTimeout(()=>{
-               if(contentDivRef.current){
-                  contentDivRef.current.style['height'] = '';
-                  contentDivRef.current.style['transform'] ='';
-                  contentDivRef.current.style['overflow'] = '';
-                  setResults(response);
-               }
-            }, 8000);
+               contentDivRef.current!.style['height'] = '';
+               contentDivRef.current!.style['overflow'] = '';
+               setResults(response);
+            }, 800);
          });
-         if(contentDivRef.current){
-            contentDivRef.current.style['height'] = '0';
-            contentDivRef.current.style['transform'] ='translate-y(5px)';
-            contentDivRef.current.style['overflow'] = 'hidden';
-         }
-         setTimeout(()=>{
-            if(contentDivRef.current){
-               contentDivRef.current.style['height'] = '';
-               contentDivRef.current.style['transform'] ='';
-               contentDivRef.current.style['overflow'] = '';
-               setLoading(true);
-            }
-         }, 800);
-      
    }
 
-   const uploadFile = (file:any) =>{
-      
-      let formData = new FormData()
-
-      formData.append('file',file)
-
-      fetch('/file', {
-         method: 'POST',
-         credentials: 'same-origin',
-         body: formData
-      }).then(response => response.json())
-        .then((data) => {
-            setFiles((files) =>{
-               let newFiles = [...files];
-               for(let i = 0; i< newFiles.length;i++){
-                  if(newFiles[i].name === file.name){
-                     newFiles[i].status = data.uploadStatus;
-                     break;
-                  }
-                 
-               }
-               return newFiles;
-            });
-        });
-   }
+   
     
    const ready = () =>{
       return !(files.length === 0 || files.some(element => element.status === UploadStatus.UPLOADING));
    }
 
    let content;
-   if(!loading && !results){
+   if(!results){
       content = [
-         <h1>WORD-COUNT</h1>,
+         <h1>WORD-<span>COUNT</span></h1>,
          <DropBox handleFiles = {handleFiles} files = {files} deleteFile = {handleDeleteFile}/>,
-         <div className = {'goButton'+ (ready() ? ' enabled' : '')} onMouseUp = {handleGo} >Go</div>
+         <div className = {'goButton'+ (ready() ? ' enabled' : '')} onMouseUp = { ready() ? handleGo : undefined} >Go</div>
       ];
-   }else if(loading && !results){
-      console.log('LOADING');
-      content = [<Loading/>];
-   }else if(results){
-      console.log('RESULTS');
-      content = [<ResultDisplay res = {results}/>];
+   }else {
+      content = [<h1>WORD-COUNT</h1>, <ResultDisplay res = {results}/>];
    }
-
    return (
       <div className="main">
         <div className='content' ref ={contentDivRef}>
@@ -126,10 +115,6 @@ export const Main  = () =>{
         </div>
       </div>
     );
-}
-
-const Loading  = ()=>{
-   return <h1>loading</h1>
 }
 
 const ResultDisplay = ({res}:any)=>{
@@ -160,7 +145,8 @@ const ResultDisplay = ({res}:any)=>{
             wordMap.set(word, {count: fileData[word], fileAparences:[file]});
          }
       }
-      fileDataDisplays.push(<ResultsFile fileName={file} totalWordCount={fileWordCount} uniqueWordCount={Object.keys(fileData).length} tableData = {fileWordData} mostUsedWord={'f'}/>);
+      fileWordData.sort((a,b)=>{return a.count>b.count? -1:1});
+      fileDataDisplays.push(<ResultsFile fileName={file} totalWordCount={fileWordCount} uniqueWordCount={Object.keys(fileData).length} tableData = {fileWordData} mostUsedWord={fileWordData[0].word}/>);
 
    }
    wordMap.forEach((value, key) =>{

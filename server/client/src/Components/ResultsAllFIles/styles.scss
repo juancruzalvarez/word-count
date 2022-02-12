@@ -1,0 +1,38 @@
+@use '../globals' as *;
+
+.resultsAllFilesContainer{
+   display:inline-block;
+   min-width: 400px;
+   border: 2px solid black;
+   border-radius: 0.7em;
+   padding: 0;
+   width: min-content;
+   font-family: 'Courier New', Courier, monospace;
+   h2{
+      color: black;
+      padding-top: 0.3em;
+   }
+   th {
+      background-color: $colorGreen;
+      color: white;
+      font-weight: normal;
+      padding: 0.3em 0.3em;
+      text-align: center;
+   }
+    th:hover {
+      background-color: $colorPurple;
+    }
+   td {
+      background-color: rgb(238, 238, 238);
+      color: rgb(111, 111, 111);
+      padding: 0.3em 0.3em;
+   }
+   p{
+
+      font-size: 0.8em;
+   }
+   table{
+      @include centeredDiv;
+      width:100%;
+   }
+}

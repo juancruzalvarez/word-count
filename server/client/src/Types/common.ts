@@ -7,18 +7,18 @@ export enum UploadStatus{
 };
 
 export type FileData = {
-   name:string;
-   size:number;
-   status:UploadStatus;
+   'name':string;
+   'size':number;
+   'status':UploadStatus;
 };
 
 export type WordDataAll ={
-   word:string;
-   count:number;
-   fileAparences:string[];
+   'word':string;
+   'count':number;
+   'fileAparences':string[];
 };
 
 export type WordDataFile ={
-   word:string;
-   count:number;
+   'word':string;
+   'count':number;
 };

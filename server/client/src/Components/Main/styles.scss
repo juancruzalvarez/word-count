@@ -1,5 +1,12 @@
 @use '../globals' as *;
 
+h1{
+   font-family: 'Courier New', Courier, monospace;
+   font-size: 4em;
+   span{
+      color: $colorGreen;
+   }
+}
 .main{
    text-align: center;
 }
