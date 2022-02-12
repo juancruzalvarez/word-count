@@ -27,7 +27,6 @@ app.get('/', (req, res) =>{
 app.post("/file", upload.single('file'),  (req, res, next) =>{
   let sessionId;
   if(!req.cookies.id){ 
-    console.log('NO COOKIE');
     let newId = uuidv4();
     while(files.has(newId)){
       newId = uuidv4();
@@ -35,21 +34,16 @@ app.post("/file", upload.single('file'),  (req, res, next) =>{
     res.cookie('id', newId);
     sessionId = newId;
   }else{
-    console.log('COOKIE!');
     sessionId = req.cookies.id;
   }
   
   if(!req.file){
-    console.log('no file');
     res.send({uploadStatus:'ERROR_IN_REQUEST'});
   }else if(req.file.mimetype !== 'text/plain'){
-    console.log('not text');
     res.send({uploadStatus:'ERROR_FILE_TYPE'});
   }else if(req.file.size >MAX_FILE_SIZE){
-    console.log('too big');
     res.send({uploadStatus:'ERROR_FILE_TOO_BIG'});
   }else{
-    console.log('okey');
     if(files.has(sessionId)){
       files.set(sessionId, files.get(sessionId).concat(req.file));
     }else{
@@ -61,8 +55,6 @@ app.post("/file", upload.single('file'),  (req, res, next) =>{
       }, MAX_SESSION_TIME);
     }
     res.send({uploadStatus:'UPLOADED'});
-    console.log("Map:");
-    console.log(files);
   }
 });
 
@@ -73,7 +65,6 @@ app.delete("/file", (req,res)=>{
     if(index !==-1){
       files.get(req.cookies.id).splice(index,1); 
       res.send({'message':'deletedOK'});
-      console.log('deleted:'+req.body.file);
     }else{
       res.send({'message':'notDeleted'});
     }
@@ -83,16 +74,11 @@ app.delete("/file", (req,res)=>{
 });
 
 app.get("/results", (req, res) => {
-  console.log('results');
    if(!req.cookies.id || !files.has(req.cookies.id)){
      res.send({error:'No session'});
    }else{
      let results = getResults(req.cookies.id);
-     console.log('files before:');
-     console.log(files);
      files.delete(req.cookies.id);
-     console.log('files after:');
-     console.log(files);
      res.clearCookie('id');
      res.send(results);
      
@@ -105,7 +91,7 @@ app.get("/results", (req, res) => {
   files.get(id).forEach((element)=>{
     let wordMap = new Map();
     let string = element.buffer.toString();
-    let words = string.trim().replace(/[.,"]gi/,' ').split(/\s+/).filter((element)=>{return element && element !== ' '});  //remove punctuation and then split by whitespace, linebreak and such
+    let words = string.trim().replace(/\W/,' ').split(/\s+/).filter((element)=>{return element && element !== ' '});
     words.forEach((word) =>{
       let wordlc = word.toLowerCase();
       if(wordMap.has(wordlc)){
