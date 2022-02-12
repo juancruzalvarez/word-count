@@ -53,6 +53,7 @@
    color: black;
    visibility: hidden;
    opacity: 0;
+   z-index: 5;
  
    /* transition effect. not necessary */
    transition: opacity .2s, visibility .2s;

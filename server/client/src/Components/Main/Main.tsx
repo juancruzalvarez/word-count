@@ -16,7 +16,6 @@ export const Main  = () =>{
    const handleFiles =  (filesToUpload:any) =>{
       let newFiles = [...filesToUpload];
       let tmp = [...files];  
-      console.log('Start handle files');
       for(let i = 0; i< newFiles.length; i++){
          let file = newFiles[i];
          tmp.push({name: file.name, size: file.size, status:UploadStatus.UPLOADING});
@@ -26,12 +25,9 @@ export const Main  = () =>{
    }
    const uploadFiles = async (files:any) =>{
       let filesToUpload = [...files]; 
-      console.log('Start handle files');
       for(let i = 0; i< filesToUpload.length; i++){
          let file = filesToUpload[i];
-         console.log('start upload file.'+file.name);
          await uploadFile(file);
-         console.log('done upload file:'+file.name);
       }
    }
    const uploadFile = async (file:any) =>{
@@ -48,13 +44,9 @@ export const Main  = () =>{
                for(let i = 0; i< newFiles.length;i++){
                   if(newFiles[i].name === file.name){
                      newFiles[i].status = data.uploadStatus;
-                     console.log('newfiles[i] :');
-                     console.log(newFiles[i]);
                      break;
                   }
                }
-               console.log('recived response from file:'+file.name);
-               console.log('response:'+data.uploadStatus);
                return newFiles;
             });
         });
@@ -76,19 +68,13 @@ export const Main  = () =>{
    }
 
    const handleGo = () =>{
-      contentDivRef.current!.style['height'] = '0';
-      contentDivRef.current!.style['overflow'] = 'hidden';
       fetch('/results', {
          method: 'GET',
          credentials: 'same-origin',
          })
          .then((res)=> {console.log(res); return res.json()})
          .then((response)=>{
-            setTimeout(()=>{
-               contentDivRef.current!.style['height'] = '';
-               contentDivRef.current!.style['overflow'] = '';
-               setResults(response);
-            }, 800);
+            setResults(response);
          });
    }
 
@@ -106,7 +92,7 @@ export const Main  = () =>{
          <div className = {'goButton'+ (ready() ? ' enabled' : '')} onMouseUp = { ready() ? handleGo : undefined} >Go</div>
       ];
    }else {
-      content = [<h1>WORD-COUNT</h1>, <ResultDisplay res = {results}/>];
+      content = [<h1>WORD-<span>COUNT</span></h1>, <ResultDisplay res = {results}/>];
    }
    return (
       <div className="main">
